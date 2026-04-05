@@ -9,83 +9,90 @@ use Illuminate\Validation\ValidationException;
 use Laravel\Lumen\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use GuzzleHttp\Exception\ClientException;
 use Throwable;
 
 class Handler extends ExceptionHandler
 {
+    /**
+     * Exceptions that should not be reported.
+     *
+     * @var array
+     */
     protected $dontReport = [
         AuthorizationException::class,
         HttpException::class,
         ModelNotFoundException::class,
         ValidationException::class,
-        AuthenticationException::class,
+        AuthenticationException::class, 
     ];
 
+    /**
+     * Report exception
+     * 
+     * 
+     */
     public function report(Throwable $exception)
     {
         parent::report($exception);
     }
 
+    /**
+     * Render exception into response
+     */
     public function render($request, Throwable $exception)
     {
-        if ($exception instanceof HttpException) {
-            $code = $exception->getStatusCode();
-            $message = Response::$statusTexts[$code] ?? 'Error';
-            return $this->errorResponse($message, $code);
-        }
-
-        if ($exception instanceof ModelNotFoundException) {
-            $model = strtolower(class_basename($exception->getModel()));
-            return $this->errorResponse(
-                "Does not exist any instance of {$model} with the given id",
-                Response::HTTP_NOT_FOUND
-            );
-        }
-
-        if ($exception instanceof ValidationException) {
-            $errors = $exception->validator->errors()->getMessages();
-            return $this->errorResponse(
-                'Validation failed',
-                Response::HTTP_UNPROCESSABLE_ENTITY,
-                $errors
-            );
-        }
-
-        if ($exception instanceof AuthorizationException) {
-            return $this->errorResponse($exception->getMessage(), Response::HTTP_FORBIDDEN);
-        }
-
-        if ($exception instanceof AuthenticationException) {
-            return $this->errorResponse($exception->getMessage(), Response::HTTP_UNAUTHORIZED);
-        }
-
+        // 🔥 SHOW REAL ERROR IN DEBUG MODE
         if (env('APP_DEBUG', false)) {
             return parent::render($request, $exception);
         }
 
-        return $this->errorResponse(
-            'Unexpected error. Try later',
-            Response::HTTP_INTERNAL_SERVER_ERROR
-        );
-    }
+        // 🔥 HTTP Errors
+        if ($exception instanceof HttpException) {
+            return response()->json([
+                'error' => Response::$statusTexts[$exception->getStatusCode()] ?? 'Error'
+            ], $exception->getStatusCode());
+        }
 
-    /**
-     * Standardized error response with details.
-     *
-     * @param  string  $message
-     * @param  int     $statusCode
-     * @param  mixed   $details
-     * @return \Illuminate\Http\JsonResponse
-     */
-    protected function errorResponse(string $message, int $statusCode, $details = null)
-    {
+        // 🔥 Model Not Found
+        if ($exception instanceof ModelNotFoundException) {
+            return response()->json([
+                'error' => 'Resource not found'
+            ], 404);
+        }
+
+        // 🔥 Validation Errors
+        if ($exception instanceof ValidationException) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'details' => $exception->validator->errors()
+            ], 422);
+        }
+
+        // 🔥 Authorization
+        if ($exception instanceof AuthorizationException) {
+            return response()->json([
+                'error' => $exception->getMessage()
+            ], 403);
+        }
+
+        // 🔥 Authentication
+        if ($exception instanceof AuthenticationException) {
+            return response()->json([
+                'error' => $exception->getMessage()
+            ], 401);
+        }
+
+        // 🔥 Microservice Error (Guzzle)
+        if ($exception instanceof ClientException) {
+            return response()->json([
+                'error' => 'Microservice request failed'
+            ], 500);
+        }
+
+        // 🔥 Fallback
         return response()->json([
-            'success' => false,
-            'error' => [
-                'message' => $message,
-                'code' => $statusCode,
-                'details' => $details
-            ]
-        ], $statusCode);
+            'error' => 'Server error'
+        ], 500);
     }
 }

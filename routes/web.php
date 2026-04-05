@@ -13,12 +13,23 @@
 |
 */
 
-$router->get('/', function () use ($router) {
-    return $router->app->version();
-});
+// --- PROTECTED ROUTES (JWT Token Required) ---
+$router->group(['middleware' => 'auth'], function () use ($router) {
 
-$router->get('/users', 'UserController@index');           // Get all users
-$router->post('/users', 'UserController@add');           // Create new user
-$router->get('/users/{id}', 'UserController@show');      // Get user by id
-$router->put('/users/{id}', 'UserController@update');    // Update user
-$router->delete('/users/{id}', 'UserController@delete'); // Delete user
+    $router->get('/profile', function () {
+        return response()->json(auth()->user());
+    });
+
+    $router->get('/users', 'UserController@index');           // Get all users
+    $router->post('/users', 'UserController@add');          
+    $router->get('/users/{id}', 'UserController@show');      
+    $router->put('/users/{id}', 'UserController@update');    
+    $router->delete('/users/{id}', 'UserController@delete'); 
+
+    $router->get('/movie', 'MovieController@index');
+    $router->post('/movie', 'MovieController@add');
+    $router->get('/movie/{id}', 'MovieController@show'); 
+    $router->put('/movie/{id}', 'MovieController@update');
+    $router->delete('/movie/{id}', 'MovieController@delete');
+
+});

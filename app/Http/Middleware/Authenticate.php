@@ -3,40 +3,36 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Contracts\Auth\Factory as Auth;
+use Exception;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Http\Middleware\BaseMiddleware;
+use App\Models\movie; 
 
-class Authenticate
+class Authenticate extends BaseMiddleware
 {
-    /**
-     * The authentication guard factory instance.
-     *
-     * @var \Illuminate\Contracts\Auth\Factory
-     */
-    protected $auth;
-
-    /**
-     * Create a new middleware instance.
-     *
-     * @param  \Illuminate\Contracts\Auth\Factory  $auth
-     * @return void
-     */
-    public function __construct(Auth $auth)
-    {
-        $this->auth = $auth;
-    }
-
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @param  string|null  $guard
-     * @return mixed
-     */
     public function handle($request, Closure $next, $guard = null)
     {
-        if ($this->auth->guard($guard)->guest()) {
-            return response('Unauthorized.', 401);
+        $header = $request->header('Authorization');
+
+        if (!$header || strpos($header, 'Bearer ') !== 0) {
+            return response()->json([
+                'status' => 'Unauthorized',
+                'message' => 'Site 2 requires a valid JWT Bearer token.'
+            ], 401);
+        }
+
+        try {
+            // 1. Validate the token and get the payload
+            $payload = JWTAuth::parseToken()->getPayload();
+            
+            // 2. Extract the User ID (sub) from the token
+            $userId = $payload->get('sub');
+
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'Bearer Token Error', 
+                'message' => 'Site 2 rejected the token: ' . $e->getMessage()
+            ], 401);
         }
 
         return $next($request);
