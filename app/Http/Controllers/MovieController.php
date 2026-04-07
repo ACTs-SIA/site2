@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Movie;
+use App\Models\Movie; // Correctly Capitalized
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -17,15 +17,14 @@ class MovieController extends Controller
     }
 
     /**
-     * THE VALIDATION KEY: Site 1 calls this to check existence.
-     * It MUST return 404 if the movie doesn't exist.
+     * Show a single movie. 
+     * If not found, returns 404 for Site 1's validation.
      */
     public function show($id)
     {
         $movie = Movie::find($id);
 
         if (!$movie) {
-            // Site 1's Guzzle catch block depends on this 404!
             return response()->json(['message' => 'Movie not found'], 404);
         }
 
@@ -67,7 +66,6 @@ class MovieController extends Controller
 
         $this->validate($request, $rules);
 
-        // Check if data actually changed
         $movie->fill($request->all());
 
         if ($movie->isClean()) {
