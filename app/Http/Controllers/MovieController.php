@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Movie;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class MovieController extends Controller
-{
+{ 
     /**
      * Return all movies
      */
@@ -16,13 +17,15 @@ class MovieController extends Controller
     }
 
     /**
-     * Return a specific movie
+     * THE VALIDATION KEY: Site 1 calls this to check existence.
+     * It MUST return 404 if the movie doesn't exist.
      */
     public function show($id)
     {
         $movie = Movie::find($id);
 
         if (!$movie) {
+            // Site 1's Guzzle catch block depends on this 404!
             return response()->json(['message' => 'Movie not found'], 404);
         }
 
@@ -34,17 +37,14 @@ class MovieController extends Controller
      */
     public function add(Request $request)
     {
-        // Validation - if this fails, it automatically returns a 422 JSON response
-        $this->validate($request, [
+        $rules = [
             'title' => 'required|string|max:100',
             'genre' => 'required|string|max:50',
-        ]);
+        ];
 
-        // Explicitly create using input to ensure data is caught
-        $movie = Movie::create([
-            'title' => $request->input('title'),
-            'genre' => $request->input('genre'),
-        ]);
+        $this->validate($request, $rules);
+
+        $movie = Movie::create($request->all());
 
         return response()->json($movie, 201);
     }
@@ -60,15 +60,15 @@ class MovieController extends Controller
             return response()->json(['message' => 'Movie not found'], 404);
         }
 
-        $this->validate($request, [
+        $rules = [
             'title' => 'string|max:100',
             'genre' => 'string|max:50',
-        ]);
+        ];
 
-        // Capture only the allowed fields from the request
-        $data = $request->only(['title', 'genre']);
-        
-        $movie->fill($data);
+        $this->validate($request, $rules);
+
+        // Check if data actually changed
+        $movie->fill($request->all());
 
         if ($movie->isClean()) {
             return response()->json(['message' => 'At least one value must change'], 422);

@@ -21,7 +21,7 @@ $router->group(['middleware' => 'auth'], function () use ($router) {
     });
  
     $router->get('/movie', 'MovieController@index');
-    $router->post('/movies/add', 'MovieController@add');
+    $router->post('/movie', 'MovieController@add');
     $router->get('/movie/{id}', 'MovieController@show'); 
     $router->put('/movie/{id}', 'MovieController@update');
     $router->delete('/movie/{id}', 'MovieController@delete');
