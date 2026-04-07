@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\movie;
+use App\Models\Movie;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -13,7 +13,7 @@ class MovieController extends Controller
      */
     public function index()
     {
-        return response()->json(movie::all(), 200);
+        return response()->json(Movie::all(), 200);
     }
 
     /**
@@ -22,7 +22,7 @@ class MovieController extends Controller
      */
     public function show($id)
     {
-        $movie = movie::find($id);
+        $movie = Movie::find($id);
 
         if (!$movie) {
             // Site 1's Guzzle catch block depends on this 404!
@@ -44,7 +44,7 @@ class MovieController extends Controller
 
         $this->validate($request, $rules);
 
-        $movie = movie::create($request->all());
+        $movie = Movie::create($request->all());
 
         return response()->json($movie, 201);
     }
@@ -54,7 +54,7 @@ class MovieController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $movie = movie::find($id);
+        $movie = Movie::find($id);
 
         if (!$movie) {
             return response()->json(['message' => 'Movie not found'], 404);
@@ -83,7 +83,7 @@ class MovieController extends Controller
      */
     public function delete($id)
     {
-        $movie = movie::find($id);
+        $movie = Movie::find($id);
 
         if (!$movie) {
             return response()->json(['message' => 'Movie not found'], 404);

@@ -13,7 +13,7 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => App\Models\movie::class, 
+            'model' => App\Models\Movie::class, 
         ],
     ],
 ];
