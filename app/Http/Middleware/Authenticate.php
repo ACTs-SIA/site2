@@ -6,7 +6,7 @@ use Closure;
 use Exception;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Http\Middleware\BaseMiddleware;
-use App\Models\movie; 
+use App\Models\Movie; 
 
 class Authenticate extends BaseMiddleware
 {
