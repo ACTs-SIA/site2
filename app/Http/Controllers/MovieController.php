@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class MovieController extends Controller
-{ 
+{
     /**
      * Return all movies
      */
