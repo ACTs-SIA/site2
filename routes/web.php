@@ -19,13 +19,7 @@ $router->group(['middleware' => 'auth'], function () use ($router) {
     $router->get('/profile', function () {
         return response()->json(auth()->user());
     });
-
-    $router->get('/users', 'UserController@index');           // Get all users
-    $router->post('/users', 'UserController@add');          
-    $router->get('/users/{id}', 'UserController@show');      
-    $router->put('/users/{id}', 'UserController@update');    
-    $router->delete('/users/{id}', 'UserController@delete'); 
-
+ 
     $router->get('/movie', 'MovieController@index');
     $router->post('/movie', 'MovieController@add');
     $router->get('/movie/{id}', 'MovieController@show'); 
